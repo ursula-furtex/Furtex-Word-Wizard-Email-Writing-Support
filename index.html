@@ -234,8 +234,8 @@ select:focus,textarea:focus,input:focus{
   <div class="header">
     <div class="logo">F</div>
     <div class="header-text">
-      <h1>Customer Email Assistant</h1>
-      <p>Drafts customer emails in Furtex style — warm, clear, and on-brand.</p>
+      <h1>Furtex Word Wizard</h1>
+      <p>Email Assistant for writing emails in the Furtex style and tone</p>
     </div>
   </div>
 
@@ -245,10 +245,10 @@ select:focus,textarea:focus,input:focus{
     <div class="field">
       <label>Customer type</label>
       <div class="type-pills">
-        <button class="pill" data-value="large_retail" onclick="selectType(this)">Large retail account</button>
-        <button class="pill" data-value="boutique" onclick="selectType(this)">Boutique / indie retailer</button>
-        <button class="pill" data-value="prospect" onclick="selectType(this)">Prospect / new contact</button>
-        <button class="pill" data-value="agent" onclick="selectType(this)">Agent / partner account</button>
+        <button class="pill" data-value="large_retail" onclick="selectType(this)">Big Box / Retail Store</button>
+        <button class="pill" data-value="boutique" onclick="selectType(this)">Trade / A&amp;D</button>
+        <button class="pill" data-value="prospect" onclick="selectType(this)">Prospect / New Contact</button>
+        <button class="pill" data-value="agent" onclick="selectType(this)">Agent / Partner Account</button>
       </div>
       <div class="pill-hint" id="typeHint"></div>
     </div>
@@ -293,7 +293,6 @@ select:focus,textarea:focus,input:focus{
       <label>Tone adjustments <span>(optional)</span></label>
       <div class="chips" id="toneChips">
         <button class="chip tone-chip" data-value="extra_warm" onclick="toggleTone(this)">Extra warm</button>
-        <button class="chip tone-chip" data-value="brief" onclick="toggleTone(this)">Very brief</button>
         <button class="chip tone-chip" data-value="urgent" onclick="toggleTone(this)">Urgent</button>
         <button class="chip tone-chip" data-value="apologetic" onclick="toggleTone(this)">Apologetic</button>
         <button class="chip tone-chip" data-value="firm_but_polite" onclick="toggleTone(this)">Firm but polite</button>
@@ -538,10 +537,10 @@ function setLoading(on) {
 }
 
 const typeLabels = {
-  large_retail: 'Large retail account',
-  boutique: 'Boutique / indie retailer',
-  prospect: 'Prospect / new contact',
-  agent: 'Agent / partner account'
+  large_retail: 'Big Box / Retail Store',
+  boutique: 'Trade / A&D',
+  prospect: 'Prospect / New Contact',
+  agent: 'Agent / Partner Account'
 };
 const scenarioLabels = {
   order_ack: 'New order received',
