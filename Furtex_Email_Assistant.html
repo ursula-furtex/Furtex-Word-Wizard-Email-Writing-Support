@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Furtex Customer Email Assistant</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:#f0f0f0;color:#1a1a1a;min-height:100vh;padding:32px 16px 56px;
+}
+.container{max-width:720px;margin:0 auto}
+
+/* Header */
+.header{display:flex;align-items:flex-start;gap:14px;margin-bottom:28px}
+.logo{
+  width:42px;height:42px;background:#1a1a1a;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:800;font-size:15px;letter-spacing:-0.5px;
+}
+.header-text h1{font-size:20px;font-weight:700;letter-spacing:-0.3px}
+.header-text p{font-size:13px;color:#777;margin-top:3px}
+
+/* Cards */
+.card{
+  background:white;border-radius:14px;border:1px solid #e0e0e0;
+  padding:24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,0.05);
+}
+.section-label{
+  font-size:11px;font-weight:700;text-transform:uppercase;
+  letter-spacing:1px;color:#aaa;margin-bottom:18px;
+}
+
+/* Form fields */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.field{margin-bottom:14px}
+label{display:block;font-size:12px;font-weight:600;color:#555;margin-bottom:5px}
+label span{font-weight:400;color:#aaa}
+
+select,textarea,input[type=text],input[type=password]{
+  width:100%;font-family:inherit;font-size:14px;color:#1a1a1a;
+  background:#f8f8f8;border:1px solid #ddd;border-radius:8px;
+  padding:10px 12px;transition:all .15s;outline:none;resize:none;
+  -webkit-appearance:none;
+}
+select{cursor:pointer}
+select:focus,textarea:focus,input:focus{
+  border-color:#1a1a1a;box-shadow:0 0 0 3px rgba(26,26,26,.08);background:white;
+}
+
+/* Customer type pills */
+.type-pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:2px}
+.pill{
+  padding:6px 13px;border-radius:20px;border:1px solid #ddd;
+  font-size:12px;color:#666;cursor:pointer;background:white;
+  transition:all .15s;user-select:none;font-family:inherit;
+}
+.pill:hover{border-color:#888;color:#1a1a1a}
+.pill.active{background:#1a1a1a;color:white;border-color:#1a1a1a}
+.pill-hint{font-size:11px;color:#bbb;margin-top:6px}
+
+/* Scenario chips */
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{
+  padding:5px 12px;border-radius:8px;border:1px solid #ddd;
+  font-size:12px;color:#666;cursor:pointer;background:white;
+  transition:all .15s;user-select:none;font-family:inherit;
+}
+.chip:hover{border-color:#888;color:#1a1a1a;background:#fafafa}
+.chip.active{background:#1a1a1a;color:white;border-color:#1a1a1a}
+
+/* Generate button */
+.btn-primary{
+  width:100%;padding:13px;background:#1a1a1a;color:white;
+  border:none;border-radius:9px;font-size:14px;font-weight:600;
+  cursor:pointer;font-family:inherit;margin-top:6px;letter-spacing:-0.1px;
+  transition:background .15s,transform .1s;
+}
+.btn-primary:hover:not(:disabled){background:#333}
+.btn-primary:active:not(:disabled){transform:scale(.99)}
+.btn-primary:disabled{background:#bbb;cursor:not-allowed}
+
+/* Output card */
+.output-card{
+  background:white;border-radius:14px;border:1px solid #e0e0e0;
+  overflow:hidden;display:none;margin-bottom:16px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.05);
+}
+.output-card.visible{display:block}
+
+.output-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 20px;border-bottom:1px solid #eee;background:#fafafa;
+}
+.output-header-left{display:flex;align-items:center;gap:9px}
+.output-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#aaa}
+
+.status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;display:none}
+.status-dot.visible{display:block}
+.spinner{
+  width:14px;height:14px;border:2px solid #e5e5e5;border-top-color:#888;
+  border-radius:50%;animation:spin .7s linear infinite;display:none;
+}
+.spinner.visible{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.copy-btn{
+  padding:5px 13px;background:white;border:1px solid #ddd;border-radius:6px;
+  font-size:12px;font-weight:500;color:#666;cursor:pointer;
+  font-family:inherit;transition:all .15s;
+}
+.copy-btn:hover{border-color:#aaa;color:#1a1a1a}
+.copy-btn.copied{color:#16a34a;border-color:#16a34a;background:#f0fdf4}
+
+.output-body{
+  padding:22px 24px;font-size:14px;line-height:1.72;color:#1a1a1a;
+  white-space:pre-wrap;word-break:break-word;min-height:60px;
+}
+.output-body.loading{color:#bbb;font-style:italic}
+
+/* Refine bar */
+.refine-bar{
+  display:none;gap:8px;padding:14px 20px;
+  border-top:1px solid #eee;background:#fafafa;
+}
+.refine-bar.visible{display:flex}
+.refine-input{
+  flex:1;padding:9px 12px;border:1px solid #ddd;border-radius:8px;
+  font-size:13px;font-family:inherit;outline:none;background:white;
+}
+.refine-input:focus{border-color:#1a1a1a;box-shadow:0 0 0 2px rgba(26,26,26,.07)}
+.refine-btn{
+  padding:9px 14px;background:white;border:1px solid #ddd;border-radius:8px;
+  font-size:13px;font-weight:500;color:#555;cursor:pointer;
+  font-family:inherit;transition:all .15s;white-space:nowrap;
+}
+.refine-btn:hover:not(:disabled){background:#f0f0f0;border-color:#aaa}
+.refine-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Error */
+.error{
+  color:#dc2626;font-size:13px;padding:10px 14px;
+  background:#fef2f2;border:1px solid #fecaca;border-radius:8px;
+  margin-top:10px;display:none;
+}
+.error.visible{display:block}
+
+/* API key setup */
+.setup-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;padding:16px;backdrop-filter:blur(3px);
+}
+.setup-overlay.hidden{display:none}
+.setup-modal{
+  background:white;border-radius:16px;padding:32px 28px;
+  max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.2);
+}
+.setup-modal .m-logo{
+  width:36px;height:36px;background:#1a1a1a;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:800;font-size:13px;margin-bottom:16px;
+}
+.setup-modal h2{font-size:18px;font-weight:700;margin-bottom:6px;letter-spacing:-0.3px}
+.setup-modal .desc{font-size:13px;color:#666;line-height:1.55;margin-bottom:22px}
+.setup-modal .desc a{color:#1a1a1a}
+.key-row{display:flex;gap:8px;margin-bottom:10px}
+.key-row input{flex:1}
+.show-btn{
+  padding:0 12px;border:1px solid #ddd;border-radius:8px;
+  background:#f8f8f8;font-size:12px;color:#666;cursor:pointer;
+  font-family:inherit;white-space:nowrap;transition:all .15s;
+}
+.show-btn:hover{background:#eee}
+.setup-note{font-size:12px;color:#aaa;margin-bottom:20px;line-height:1.5}
+.setup-note strong{color:#555}
+.key-error{font-size:13px;color:#dc2626;margin-bottom:12px;display:none}
+.key-error.visible{display:block}
+
+/* Settings cog */
+.settings-btn{
+  position:fixed;bottom:20px;right:20px;width:36px;height:36px;
+  border-radius:50%;background:white;border:1px solid #ddd;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;transition:all .15s;
+}
+.settings-btn:hover{background:#f5f5f5;box-shadow:0 3px 12px rgba(0,0,0,.15)}
+
+/* Style hints */
+.style-hints{display:none;flex-wrap:wrap;gap:6px;margin-top:12px}
+.style-hints.visible{display:flex}
+.hint{
+  font-size:11px;color:#888;background:white;border:1px solid #e5e5e5;
+  border-radius:5px;padding:3px 8px;
+}
+.hint::before{content:'\2713\00a0';color:#22c55e}
+
+.footer{text-align:center;font-size:11.5px;color:#bbb;padding-top:4px}
+</style>
+</head>
+<body>
+
+<!-- API Key Setup Modal -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-modal">
+    <div class="m-logo">F</div>
+    <h2>Set up your API key</h2>
+    <p class="desc">
+      This tool uses the Anthropic API to draft customer emails.<br>
+      Paste the team API key below — you only need to do this once.
+      It's stored locally in your browser and never sent anywhere except directly to Anthropic.<br><br>
+      Need a key? Ask your manager or visit
+      <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+    </p>
+    <div class="key-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-…" autocomplete="off">
+      <button class="show-btn" onclick="toggleKeyVis()">Show</button>
+    </div>
+    <p class="setup-note">
+      <strong>Stored only in your browser</strong> — never shared, never logged on our side.
+    </p>
+    <div class="key-error" id="keyError"></div>
+    <button class="btn-primary" onclick="saveKey()">Save &amp; Continue</button>
+  </div>
+</div>
+
+<button class="settings-btn" title="Update API key" onclick="openSetup()">⚙</button>
+
+<div class="container">
+
+  <div class="header">
+    <div class="logo">F</div>
+    <div class="header-text">
+      <h1>Customer Email Assistant</h1>
+      <p>Drafts customer emails in Furtex style — warm, clear, and on-brand.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Customer Details</div>
+
+    <div class="field">
+      <label>Customer type</label>
+      <div class="type-pills">
+        <button class="pill" data-value="large_retail" onclick="selectType(this)">Large retail account</button>
+        <button class="pill" data-value="boutique" onclick="selectType(this)">Boutique / indie retailer</button>
+        <button class="pill" data-value="prospect" onclick="selectType(this)">Prospect / new contact</button>
+        <button class="pill" data-value="agent" onclick="selectType(this)">Agent / partner account</button>
+      </div>
+      <div class="pill-hint" id="typeHint"></div>
+    </div>
+
+    <div class="field-row">
+      <div>
+        <label>Customer name <span>(optional)</span></label>
+        <input type="text" id="customerName" placeholder="e.g. Lisa, Jodie and team, Marie…">
+      </div>
+      <div>
+        <label>Company <span>(optional)</span></label>
+        <input type="text" id="companyName" placeholder="e.g. Farm Home Co., Morgan Furniture…">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-label">Email Scenario</div>
+
+    <div class="field">
+      <label>What type of email is this?</label>
+      <div class="chips" id="scenarioChips">
+        <button class="chip" data-value="order_ack" onclick="selectScenario(this)">New order received</button>
+        <button class="chip" data-value="stock_issue" onclick="selectScenario(this)">Out of stock / stock query</button>
+        <button class="chip" data-value="account_access" onclick="selectScenario(this)">Account / access issue</button>
+        <button class="chip" data-value="prospect_response" onclick="selectScenario(this)">Prospect / new enquiry</button>
+        <button class="chip" data-value="followup" onclick="selectScenario(this)">Follow-up (no response)</button>
+        <button class="chip" data-value="apology_delay" onclick="selectScenario(this)">Apology / delay update</button>
+        <button class="chip" data-value="confirm_action" onclick="selectScenario(this)">Confirming an action</button>
+        <button class="chip" data-value="send_report" onclick="selectScenario(this)">Sending a report / file</button>
+        <button class="chip" data-value="product_query" onclick="selectScenario(this)">Product query / clarification</button>
+        <button class="chip" data-value="relationship" onclick="selectScenario(this)">Relationship (farewell / welcome)</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>What's the email about? <span>(give context + any specific details, names, item codes, dates)</span></label>
+      <textarea id="context" rows="4" placeholder="e.g. Lisa from Farm Home Co. placed a May order. The Cassia Clove cushions (qty 8) are out of stock, ETA 2 weeks. All other items are available. I've put the order in the system. Ask if she wants to wait, swap, or remove the out-of-stock items."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Tone adjustments <span>(optional)</span></label>
+      <div class="chips" id="toneChips">
+        <button class="chip tone-chip" data-value="extra_warm" onclick="toggleTone(this)">Extra warm</button>
+        <button class="chip tone-chip" data-value="brief" onclick="toggleTone(this)">Very brief</button>
+        <button class="chip tone-chip" data-value="urgent" onclick="toggleTone(this)">Urgent</button>
+        <button class="chip tone-chip" data-value="apologetic" onclick="toggleTone(this)">Apologetic</button>
+        <button class="chip tone-chip" data-value="firm_but_polite" onclick="toggleTone(this)">Firm but polite</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="generateBtn" onclick="generateEmail()">Draft Email</button>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <div class="output-card" id="outputCard">
+    <div class="output-header">
+      <div class="output-header-left">
+        <div class="output-title">Draft</div>
+        <div class="status-dot" id="statusDot"></div>
+        <div class="spinner" id="spinner"></div>
+      </div>
+      <button class="copy-btn" id="copyBtn" onclick="copyEmail()">Copy</button>
+    </div>
+    <div class="output-body" id="outputBody"></div>
+    <div class="refine-bar" id="refineBar">
+      <input type="text" class="refine-input" id="refineInput"
+        placeholder="Refine: shorten it, add a 2-week ETA, use Hey instead of Hello…"
+        onkeydown="if(event.key==='Enter') refineEmail()">
+      <button class="refine-btn" id="refineBtn" onclick="refineEmail()">Refine</button>
+    </div>
+  </div>
+
+  <div class="style-hints" id="styleHints">
+    <span class="hint">Greeting matched to customer type</span>
+    <span class="hint">Options given for stock issues</span>
+    <span class="hint">Warm, not gushing</span>
+    <span class="hint">"Below" for thread references</span>
+    <span class="hint">Kind Regards sign-off</span>
+  </div>
+
+  <div class="footer" style="margin-top:16px">Powered by Claude &middot; Furtex customer email style</div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `You are a customer email drafting assistant for Furtex, a home furnishings company (cushions, rugs, textiles) with operations in New Zealand and Australia. You draft emails to external customers only — retailers, boutiques, prospects, and agent/partner accounts. You write in the established Furtex house style for customer communication.
+
+CUSTOMER TYPES AND GREETING RULES — follow exactly:
+- Large retail account (e.g. big furniture chains, national retailers, major department stores) → "Hello [Name] and team," or "Hello [Name],"
+- Boutique / indie retailer (small independent stores, design studios, home boutiques) → "Hey [Name],"
+- Prospect / new contact (someone who has enquired or submitted a registration form) → "Morning [Name]," or "Hello [Name],"
+- Agent / partner account (agents, reps, distribution partners) → "Hey [Name]," or "Hello [Name],"
+- If no name is provided, use the appropriate greeting without a name.
+
+VOICE AND TONE:
+- Warm but efficient. With customers, lead with warmth before substance — one sentence of genuine warmth earns you the ask.
+- Boutique/indie customers get the most personal, friendly tone. Large accounts get composed and professional.
+- Warmth comes from greeting choice, opener phrases, emoji (for boutique/indie only), and closing lines — not adjectives.
+- Never gushing, never cold.
+
+OPENER PHRASES — use where appropriate:
+- For new orders: "Nice to hear from you, thanks for your email and order 😊" (boutique/indie only)
+- For inbound queries: "Thanks for reaching out!"
+- For a warm check-in follow-up: "Hope all is well 😊" (boutique/indie) or "Hope you're well!" (prospect)
+- For delay/apology: "Apologies —" then brief context
+- For confirming action: "Confirming [action] —"
+- For update to large account: "Thank you for your patience on this —" if there was a wait
+
+EMOJI RULES:
+- 😊 is appropriate only for boutique/indie retailers and agent/partner accounts — NOT for large retail accounts or formal contacts
+- Place at the end of an opener sentence: "Nice to hear from you, thanks for your email and order 😊"
+- Maximum one emoji per email
+
+STOCK ISSUE FORMULA — always follow this order:
+1. Confirm the order is in the system
+2. Name the specific item and quantity affected
+3. Give an ETA if known: "we have more due into stock in around [timeframe]"
+4. Offer options: "Would you like to wait for these, swap them out for another item or leave them off?"
+5. Invite a response: "Let me know and I can go ahead and [next step]"
+6. Optional: add a useful value-add (catalogue link, product image)
+
+APOLOGY FORMULA:
+1. "Apologies —" or "Apologies for the delay —"
+2. Use "we" for company-level issues: "we are currently working through this as urgently as we can"
+3. One sentence of context — explain without excusing
+4. Ask for reasonable compromise if appropriate
+5. Commit to next step: "I'll be in touch as soon as [resolution]" or "I'll follow up by [date]"
+
+ACCOUNT / ACCESS ISSUE:
+- "I've just [done the thing] — you should have received [expected outcome], which will [result]."
+- Tell them what to expect, not what you did technically
+- Add any useful proactive info
+
+PROSPECT / NEW ENQUIRY:
+- Warmest register of all
+- "Morning [Name], Hope you're well!" or "Hello [Name],"
+- Invite low-pressure engagement: "feel free to call or reply back via email so we can learn a little more about your business"
+- Close: "Look forward to hearing from you."
+
+CUSTOMER FOLLOW-UP (no response):
+- "Hello [Name], Hope all is well 😊 just following up on my below email?" — question mark softens
+- Or: "Morning [Name], Just checking in on my below email —"
+- Add a warm social opener before the nudge
+
+CONFIRMING AN ACTION:
+- "Confirming [action] — [what customer should check or expect]."
+- "If you can please have a check and confirm these have come through correctly, that would be great."
+
+SENDING A REPORT / FILE:
+- State what it is in one sentence
+- Note any changes: "I've added [X] — this gives you [benefit]"
+- Close: "feel free to let me know if you have any questions"
+
+PROACTIVE VALUE-ADDING:
+- Include helpful extras when relevant: catalogue links, product links, screenshots
+- Frame non-pushily: "I've included a link to our latest catalogue below in case you wanted to flick through as well"
+- If you've physically verified something: "I have physically just run down to the warehouse to confirm [X]"
+
+CLOSING LINES by context:
+- Boutique/familiar after order or query: "Speak soon!" then "Kind Regards,"
+- Large account explanatory: "If you have any further queries or concerns, feel free to let me know directly." then "Many thanks" then "Kind Regards,"
+- Prospect: "Look forward to hearing from you." then "Kind Regards,"
+- Confirming action: "Please keep an eye out and let us know how they look once you receive them." then "Kind Regards,"
+- Short acknowledgment: just "Kind Regards,"
+- Relationship email: warm close ("Wishing you all the best" / "Thankyou and best wishes") then "Kind Regards,"
+
+SIGN-OFF:
+- Always close with "Kind Regards," then a blank line, then "Ursula Field"
+
+LANGUAGE:
+- "below" when referencing quoted thread content — NEVER "above" or "the following"
+- "Can you please [action]?" for direct asks
+- "Would you like to [option A], [option B] or [option C]?" for offering options
+- "feel free to" for invitations to respond (never "please do not hesitate")
+- "Let me know and I can go ahead and [action]" for next step invitations
+- "I'll be in touch as soon as [X]" for commitment phrases
+
+FORMATTING:
+- Paragraphs: 1–2 sentences maximum
+- No bold, no headers in email body
+- Bullets only for reference lists (item codes, ASN numbers, invoice numbers)
+- Short and airy — white space between paragraphs
+
+NEVER USE:
+- "Please advise"
+- "Kindly"
+- "As per my last email"
+- "Do not hesitate to contact us"
+- "Hope this email finds you well"
+- "Thank you in advance"
+- Emoji with large retail accounts
+
+OUTPUT FORMAT:
+- Output only the email text — no subject line unless asked, no preamble like "Here's a draft:"
+- Sign off as Ursula Field
+- Keep it concise. If in doubt, make it shorter.`;
+
+// State
+let selectedType = '';
+let selectedScenario = '';
+let selectedTones = [];
+let conversationHistory = [];
+
+// Type hints
+const typeHints = {
+  large_retail: 'Hello [Name] and team — composed, no emoji, formal close',
+  boutique: 'Hey [Name] — warm, friendly, emoji OK, "Speak soon!"',
+  prospect: 'Morning [Name] — warmest register, "Look forward to hearing from you."',
+  agent: 'Hey [Name] — peer-level, candid'
+};
+
+function selectType(el) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  selectedType = el.dataset.value;
+  document.getElementById('typeHint').textContent = typeHints[selectedType] || '';
+}
+
+function selectScenario(el) {
+  document.querySelectorAll('#scenarioChips .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  selectedScenario = el.dataset.value;
+}
+
+function toggleTone(el) {
+  const val = el.dataset.value;
+  if (el.classList.contains('active')) {
+    el.classList.remove('active');
+    selectedTones = selectedTones.filter(t => t !== val);
+  } else {
+    el.classList.add('active');
+    selectedTones.push(val);
+  }
+}
+
+// API key management
+function getKey() { return localStorage.getItem('furtex_api_key') || ''; }
+function saveKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const err = document.getElementById('keyError');
+  if (!key.startsWith('sk-ant-')) {
+    err.textContent = 'Key should start with sk-ant- — please check and try again.';
+    err.classList.add('visible'); return;
+  }
+  localStorage.setItem('furtex_api_key', key);
+  document.getElementById('setupOverlay').classList.add('hidden');
+  err.classList.remove('visible');
+}
+function openSetup() {
+  document.getElementById('apiKeyInput').value = getKey();
+  document.getElementById('setupOverlay').classList.remove('hidden');
+}
+function toggleKeyVis() {
+  const inp = document.getElementById('apiKeyInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+// Init: show setup if no key
+window.addEventListener('DOMContentLoaded', () => {
+  if (!getKey()) document.getElementById('setupOverlay').classList.remove('hidden');
+  else document.getElementById('setupOverlay').classList.add('hidden');
+});
+
+async function callAPI(messages) {
+  const key = getKey();
+  if (!key) { openSetup(); throw new Error('No API key — please add one.'); }
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, system: SYSTEM_PROMPT, messages })
+  });
+  if (!resp.ok) {
+    const e = await resp.json().catch(() => ({}));
+    throw new Error(e.error?.message || 'API error ' + resp.status);
+  }
+  const d = await resp.json();
+  return d.content?.[0]?.text || '';
+}
+
+function setLoading(on) {
+  document.getElementById('generateBtn').disabled = on;
+  document.getElementById('refineBtn').disabled = on;
+  document.getElementById('spinner').classList.toggle('visible', on);
+  document.getElementById('statusDot').classList.toggle('visible', !on && conversationHistory.length > 0);
+  document.getElementById('outputBody').classList.toggle('loading', on);
+  if (on) document.getElementById('outputBody').textContent = 'Drafting\u2026';
+}
+
+const typeLabels = {
+  large_retail: 'Large retail account',
+  boutique: 'Boutique / indie retailer',
+  prospect: 'Prospect / new contact',
+  agent: 'Agent / partner account'
+};
+const scenarioLabels = {
+  order_ack: 'New order received',
+  stock_issue: 'Out of stock / stock query',
+  account_access: 'Account / access issue',
+  prospect_response: 'Prospect / new enquiry response',
+  followup: 'Follow-up (no response received)',
+  apology_delay: 'Apology / delay update',
+  confirm_action: 'Confirming an action',
+  send_report: 'Sending a report / file',
+  product_query: 'Product query / clarification',
+  relationship: 'Relationship email (farewell / welcome)'
+};
+
+function buildPrompt() {
+  const name = document.getElementById('customerName').value.trim();
+  const company = document.getElementById('companyName').value.trim();
+  const context = document.getElementById('context').value.trim();
+
+  let msg = 'Draft a customer email with these details:\n';
+  if (selectedType) msg += `- Customer type: ${typeLabels[selectedType]}\n`;
+  if (name) msg += `- Customer name: ${name}\n`;
+  if (company) msg += `- Company: ${company}\n`;
+  if (selectedScenario) msg += `- Email scenario: ${scenarioLabels[selectedScenario]}\n`;
+  if (context) msg += `- Context and details: ${context}\n`;
+  if (selectedTones.length) msg += `- Tone adjustments: ${selectedTones.join(', ')}\n`;
+  return msg;
+}
+
+async function generateEmail() {
+  const context = document.getElementById('context').value.trim();
+  const errEl = document.getElementById('errorMsg');
+  if (!context) {
+    errEl.textContent = 'Please describe what the email is about.';
+    errEl.classList.add('visible'); return;
+  }
+  errEl.classList.remove('visible');
+
+  document.getElementById('outputCard').classList.add('visible');
+  document.getElementById('refineBar').classList.add('visible');
+  document.getElementById('styleHints').classList.add('visible');
+  setLoading(true);
+
+  const userMsg = buildPrompt();
+  conversationHistory = [{ role: 'user', content: userMsg }];
+
+  try {
+    const result = await callAPI(conversationHistory);
+    conversationHistory.push({ role: 'assistant', content: result });
+    document.getElementById('outputBody').textContent = result;
+  } catch(err) {
+    document.getElementById('outputBody').textContent = '';
+    errEl.textContent = 'Something went wrong: ' + err.message;
+    errEl.classList.add('visible');
+  } finally { setLoading(false); }
+}
+
+async function refineEmail() {
+  const input = document.getElementById('refineInput');
+  const refinement = input.value.trim();
+  if (!refinement || !conversationHistory.length) return;
+  document.getElementById('errorMsg').classList.remove('visible');
+  setLoading(true);
+  conversationHistory.push({ role: 'user', content: refinement });
+  input.value = '';
+  try {
+    const result = await callAPI(conversationHistory);
+    conversationHistory.push({ role: 'assistant', content: result });
+    document.getElementById('outputBody').textContent = result;
+  } catch(err) {
+    document.getElementById('errorMsg').textContent = 'Refinement failed: ' + err.message;
+    document.getElementById('errorMsg').classList.add('visible');
+    conversationHistory.pop();
+  } finally { setLoading(false); }
+}
+
+function copyEmail() {
+  const text = document.getElementById('outputBody').textContent;
+  if (!text || text === 'Drafting\u2026') return;
+  const btn = document.getElementById('copyBtn');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    btn.textContent = 'Copied!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  }
+}
+</script>
+</body>
+</html>
